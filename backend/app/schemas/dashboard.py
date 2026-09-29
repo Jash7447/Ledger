@@ -6,6 +6,7 @@ from pydantic import BaseModel
 
 from app.schemas.budget import BudgetProgress
 from app.schemas.financial import TransactionResponse
+from app.schemas.goal import GoalResponse
 
 
 class DashboardSummary(BaseModel):
@@ -14,6 +15,8 @@ class DashboardSummary(BaseModel):
     monthly_expenses_cad: Decimal
     monthly_savings_cad: Decimal
     education_spending_cad: Decimal
+    money_owed_to_user_cad: Decimal
+    money_owed_to_others_cad: Decimal
 
 
 class SpendingBreakdownItem(BaseModel):
@@ -31,3 +34,4 @@ class DashboardResponse(BaseModel):
     budget_progress: list[BudgetProgress]
     recent_transactions: list[TransactionResponse]
     major_purchases: list[TransactionResponse]
+    goals: list[GoalResponse]

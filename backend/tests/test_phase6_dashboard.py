@@ -93,6 +93,8 @@ def test_dashboard_aggregates_transactions_without_counting_transfers(client: Te
         "monthly_expenses_cad": "500.00",
         "monthly_savings_cad": "500.00",
         "education_spending_cad": "300.00",
+        "money_owed_to_user_cad": "0.00",
+        "money_owed_to_others_cad": "0.00",
     }
     assert [(item["name"], item["amount_cad"]) for item in dashboard["spending_by_bucket"]] == [
         ("Education", "300.00"),

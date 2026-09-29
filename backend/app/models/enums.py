@@ -36,3 +36,36 @@ class TransactionSortField(StrEnum):
 class SortDirection(StrEnum):
     ASC = "asc"
     DESC = "desc"
+
+
+class RecurringFrequency(StrEnum):
+    WEEKLY = "weekly"
+    BIWEEKLY = "biweekly"
+    MONTHLY = "monthly"
+    QUARTERLY = "quarterly"
+    YEARLY = "yearly"
+
+
+class IOUEventType(StrEnum):
+    BORROWED = "borrowed"
+    LENT = "lent"
+    REPAYMENT_RECEIVED = "repayment_received"
+    REPAYMENT_MADE = "repayment_made"
+    ADJUSTMENT = "adjustment"
+
+
+class IOUAdjustmentDirection(StrEnum):
+    OWES_USER = "owes_user"
+    USER_OWES = "user_owes"
+
+
+class DisplayCurrency(StrEnum):
+    CAD = "CAD"
+    INR = "INR"
+
+
+class GoalStatus(StrEnum):
+    ACTIVE = "active"
+    PAUSED = "paused"
+    COMPLETED = "completed"
+    CANCELLED = "cancelled"

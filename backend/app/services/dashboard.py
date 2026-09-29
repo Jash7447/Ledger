@@ -17,6 +17,8 @@ from app.schemas.dashboard import (
 from app.schemas.financial import TransactionResponse
 from app.services.accounts import list_accounts_with_balances
 from app.services.budgets import list_budgets_with_progress
+from app.services.goals import dashboard_goals
+from app.services.people import get_iou_totals
 
 
 def month_bounds(selected_month: str | None) -> tuple[date, date]:
@@ -68,6 +70,7 @@ def get_dashboard(db: Session, user_id: UUID, selected_month: str | None) -> Das
         (balance for _, balance in list_accounts_with_balances(db, user_id)),
         Decimal("0.00"),
     )
+    iou_totals = get_iou_totals(db, user_id)
 
     bucket_rows = db.execute(
         select(
@@ -143,6 +146,8 @@ def get_dashboard(db: Session, user_id: UUID, selected_month: str | None) -> Das
             monthly_expenses_cad=expense_amount,
             monthly_savings_cad=income_amount - expense_amount,
             education_spending_cad=Decimal(education_spending or 0),
+            money_owed_to_user_cad=iou_totals.owed_to_user_cad,
+            money_owed_to_others_cad=iou_totals.user_owes_cad,
         ),
         spending_by_bucket=[
             SpendingBreakdownItem(id=item_id, name=name, amount_cad=Decimal(amount))
@@ -157,4 +162,5 @@ def get_dashboard(db: Session, user_id: UUID, selected_month: str | None) -> Das
         ),
         recent_transactions=[TransactionResponse.model_validate(item) for item in recent],
         major_purchases=[TransactionResponse.model_validate(item) for item in major],
+        goals=dashboard_goals(db, user_id),
     )

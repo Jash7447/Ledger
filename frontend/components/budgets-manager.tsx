@@ -4,9 +4,10 @@ import { FormEvent, useCallback, useEffect, useState } from "react";
 import { Pencil, Plus, Trash2, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { useCurrency } from "@/components/currency-provider";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { formatCad, ledgerRequest } from "@/lib/ledger-api";
+import { ledgerRequest } from "@/lib/ledger-api";
 import type { BudgetProgress, ClassificationCatalog } from "@/lib/ledger-types";
 
 const selectClass = "h-10 w-full rounded-lg border bg-white px-3 text-sm outline-none focus:ring-2 focus:ring-primary";
@@ -108,12 +109,13 @@ export function BudgetsManager() {
 }
 
 function BudgetCard({ budget, onEdit, onDelete }: { budget: BudgetProgress; onEdit: () => void; onDelete: () => void }) {
+  const { formatMoney } = useCurrency();
   const width = Math.min(Number(budget.percentage_used), 100);
   const progressTone = budget.is_over_budget ? "bg-red-600" : Number(budget.percentage_used) >= 80 ? "bg-amber-500" : "bg-primary";
   return <Card className={budget.is_over_budget ? "border-red-200" : ""}><CardHeader className="flex-row items-start justify-between space-y-0"><div><CardTitle>{budget.scope_name}</CardTitle><p className="mt-1 text-xs capitalize text-muted-foreground">{budget.scope_type} budget</p></div><div className="flex gap-1"><button onClick={onEdit} className="rounded p-2 text-muted-foreground hover:bg-muted" aria-label={`Edit ${budget.scope_name} budget`}><Pencil className="size-4" /></button><button onClick={onDelete} className="rounded p-2 text-muted-foreground hover:bg-muted" aria-label={`Delete ${budget.scope_name} budget`}><Trash2 className="size-4" /></button></div></CardHeader><CardContent>
-    <div className="flex items-end justify-between gap-3"><div><p className="text-2xl font-semibold">{formatCad(budget.spent_cad)}</p><p className="text-xs text-muted-foreground">of {formatCad(budget.amount_cad)}</p></div><p className={`text-sm font-semibold ${budget.is_over_budget ? "text-red-700" : ""}`}>{budget.percentage_used}%</p></div>
+    <div className="flex items-end justify-between gap-3"><div><p className="text-2xl font-semibold">{formatMoney(budget.spent_cad)}</p><p className="text-xs text-muted-foreground">of {formatMoney(budget.amount_cad)}</p></div><p className={`text-sm font-semibold ${budget.is_over_budget ? "text-red-700" : ""}`}>{budget.percentage_used}%</p></div>
     <div className="mt-4 h-2 overflow-hidden rounded-full bg-muted"><div className={`h-full rounded-full ${progressTone}`} style={{ width: `${width}%` }} /></div>
-    <div className="mt-3 flex justify-between text-xs"><span className="text-muted-foreground">Remaining</span><span className={budget.is_over_budget ? "font-medium text-red-700" : "font-medium"}>{formatCad(budget.remaining_cad)}</span></div>
-    {budget.is_over_budget && <p className="mt-3 rounded-md bg-red-50 px-2.5 py-2 text-xs font-medium text-red-700">Over budget by {formatCad(String(Math.abs(Number(budget.remaining_cad))))}</p>}
+    <div className="mt-3 flex justify-between text-xs"><span className="text-muted-foreground">Remaining</span><span className={budget.is_over_budget ? "font-medium text-red-700" : "font-medium"}>{formatMoney(budget.remaining_cad)}</span></div>
+    {budget.is_over_budget && <p className="mt-3 rounded-md bg-red-50 px-2.5 py-2 text-xs font-medium text-red-700">Over budget by {formatMoney(String(Math.abs(Number(budget.remaining_cad))))}</p>}
   </CardContent></Card>;
 }

@@ -1,6 +1,6 @@
 # Ledger
 
-Ledger is a Canada-first personal finance application. Phases 1–7 establish the web/API/database foundation, secure ownership boundaries, account and transaction tracking, searchable history, the primary dashboard, and monthly budgets.
+Ledger is a Canada-first personal finance application. Phases 1–12 establish the web/API/database foundation, secure financial tracking, budgets, recurring and education reporting, People/IOUs, configurable CAD/INR display, historical analytics, and savings goals.
 
 ## Local development
 
@@ -25,11 +25,11 @@ Ledger is a Canada-first personal finance application. Phases 1–7 establish th
    npm run dev
    ```
 
-Open http://localhost:3000. After signing in, use **Accounts** to create financial accounts and **Transactions** to record income, expenses, and transfers.
+Open http://localhost:3000. After signing in, use **Accounts** and **Transactions** for financial records, **People** for loans and repayments, **Analytics** for historical reports, and **Goals** for manually tracked savings targets. The sidebar currency control changes all monetary displays between CAD and INR.
 
 Create an account at http://localhost:3000/sign-up. The application stores an Argon2 password hash, sets an HTTP-only signed session cookie, and validates the session through FastAPI before rendering protected routes.
 
-New users receive the product's default expense, income, and funding classifications. Account balances and budget progress are derived from transaction history. The Transactions page supports server-side search, filters, sorting, date ranges, and pagination. The dashboard summarizes monthly finances, spending, recent activity, and budget progress.
+New users receive the product's default expense, income, funding, and education classifications. Account balances, budget progress, and analytics are derived from completed CAD transactions. INR is calculated only for display using the user-configured rate. Recurring expenses, IOUs, and savings-goal progress remain separate and never alter financial account balances automatically.
 
 ## Authentication configuration
 

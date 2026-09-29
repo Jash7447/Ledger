@@ -2,11 +2,12 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowDownLeft, ArrowRight, ArrowRightLeft, ArrowUpRight, BookOpen, PiggyBank, ReceiptText, Users, Wallet } from "lucide-react";
+import { ArrowDownLeft, ArrowRight, ArrowRightLeft, ArrowUpRight, BookOpen, PiggyBank, ReceiptText, Target, Users, Wallet } from "lucide-react";
 
 import { SpendingByBucketChart, SpendingByCategoryChart } from "@/components/dashboard-charts";
+import { useCurrency } from "@/components/currency-provider";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { formatCad, ledgerRequest } from "@/lib/ledger-api";
+import { ledgerRequest } from "@/lib/ledger-api";
 import type { Account, BudgetProgress, DashboardData, LedgerTransaction } from "@/lib/ledger-types";
 
 function currentMonth() {
@@ -15,6 +16,7 @@ function currentMonth() {
 }
 
 export function Dashboard() {
+  const { formatMoney } = useCurrency();
   const [month, setMonth] = useState(currentMonth);
   const [data, setData] = useState<DashboardData | null>(null);
   const [accounts, setAccounts] = useState<Account[]>([]);
@@ -67,36 +69,37 @@ export function Dashboard() {
       <div className="mt-6 grid gap-5 xl:grid-cols-[minmax(0,1.5fr)_minmax(320px,1fr)]">
         <Card><CardHeader className="flex-row items-center justify-between space-y-0"><CardTitle>Recent transactions</CardTitle><Link href="/transactions" className="flex items-center gap-1 text-xs font-medium text-primary">View history <ArrowRight className="size-3" /></Link></CardHeader><CardContent>{data.recent_transactions.length ? <div className="divide-y">{data.recent_transactions.map((item) => <TransactionRow key={item.id} item={item} accountName={accountNames[item.account_id]} />)}</div> : <DashboardEmpty text="No transactions yet." href="/transactions" action="Add a transaction" />}</CardContent></Card>
         <div className="space-y-5">
-          <Card><CardHeader><CardTitle>Education spending</CardTitle></CardHeader><CardContent><div className="flex items-center gap-4"><span className="grid size-11 place-items-center rounded-full bg-blue-100 text-blue-700"><BookOpen className="size-5" /></span><div><p className="text-2xl font-semibold">{formatCad(summary.education_spending_cad)}</p><p className="text-xs text-muted-foreground">Selected month</p></div></div></CardContent></Card>
+          <Card><CardHeader className="flex-row items-center justify-between space-y-0"><CardTitle>Education spending</CardTitle><Link href="/education" className="flex items-center gap-1 text-xs font-medium text-primary">View report <ArrowRight className="size-3" /></Link></CardHeader><CardContent><div className="flex items-center gap-4"><span className="grid size-11 place-items-center rounded-full bg-blue-100 text-blue-700"><BookOpen className="size-5" /></span><div><p className="text-2xl font-semibold">{formatMoney(summary.education_spending_cad)}</p><p className="text-xs text-muted-foreground">Selected month</p></div></div></CardContent></Card>
           <Card><CardHeader className="flex-row items-center justify-between space-y-0"><CardTitle>Budget progress</CardTitle><Link href="/budgets" className="flex items-center gap-1 text-xs font-medium text-primary">Manage <ArrowRight className="size-3" /></Link></CardHeader><CardContent>{data.budget_progress.length ? <div className="space-y-4">{data.budget_progress.slice(0, 4).map((budget) => <DashboardBudget key={budget.id} budget={budget} />)}</div> : <DashboardEmpty text="No budgets for this month." href="/budgets" action="Create a budget" />}</CardContent></Card>
-          <Card><CardHeader><CardTitle>Money with people</CardTitle></CardHeader><CardContent><UnavailableState icon={Users} text="No IOU tracking yet" detail="Amounts owed will appear after People and IOUs are set up." /></CardContent></Card>
+          <Card><CardHeader className="flex-row items-center justify-between space-y-0"><CardTitle>Money with people</CardTitle><Link href="/people" className="flex items-center gap-1 text-xs font-medium text-primary">View people <ArrowRight className="size-3" /></Link></CardHeader><CardContent><div className="grid grid-cols-2 gap-4"><div><div className="flex items-center gap-2 text-xs text-muted-foreground"><Users className="size-3.5" />Owed to you</div><p className="mt-2 text-xl font-semibold text-emerald-700">{formatMoney(summary.money_owed_to_user_cad)}</p></div><div><div className="flex items-center gap-2 text-xs text-muted-foreground"><Users className="size-3.5" />You owe</div><p className="mt-2 text-xl font-semibold text-red-700">{formatMoney(summary.money_owed_to_others_cad)}</p></div></div></CardContent></Card>
         </div>
       </div>
 
-      <Card className="mt-6"><CardHeader><CardTitle>Recent major purchases</CardTitle></CardHeader><CardContent>{data.major_purchases.length ? <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">{data.major_purchases.map((item) => <div key={item.id} className="rounded-lg border p-4"><div className="flex items-start justify-between gap-3"><div><p className="font-medium">{item.description}</p><p className="mt-1 text-xs text-muted-foreground">{formatDate(item.date)} · {accountNames[item.account_id] ?? "Account"}</p></div><ReceiptText className="size-4 text-muted-foreground" /></div><p className="mt-4 text-lg font-semibold text-red-700">{formatCad(item.amount_cad)}</p></div>)}</div> : <p className="py-5 text-center text-sm text-muted-foreground">No major purchases recorded.</p>}</CardContent></Card>
+      <Card className="mt-6"><CardHeader><CardTitle>Recent major purchases</CardTitle></CardHeader><CardContent>{data.major_purchases.length ? <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">{data.major_purchases.map((item) => <div key={item.id} className="rounded-lg border p-4"><div className="flex items-start justify-between gap-3"><div><p className="font-medium">{item.description}</p><p className="mt-1 text-xs text-muted-foreground">{formatDate(item.date)} · {accountNames[item.account_id] ?? "Account"}</p></div><ReceiptText className="size-4 text-muted-foreground" /></div><p className="mt-4 text-lg font-semibold text-red-700">{formatMoney(item.amount_cad)}</p></div>)}</div> : <p className="py-5 text-center text-sm text-muted-foreground">No major purchases recorded.</p>}</CardContent></Card>
+
+      <Card className="mt-6"><CardHeader className="flex-row items-center justify-between space-y-0"><CardTitle>Savings goals</CardTitle><Link href="/goals" className="flex items-center gap-1 text-xs font-medium text-primary">Manage goals <ArrowRight className="size-3" /></Link></CardHeader><CardContent>{data.goals.length ? <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">{data.goals.map((goal) => <div key={goal.id} className="rounded-lg border p-4"><div className="flex items-center justify-between gap-2"><p className="font-medium">{goal.name}</p><Target className="size-4 text-muted-foreground" /></div><p className="mt-3 text-lg font-semibold">{formatMoney(goal.current_amount_cad)} <span className="text-xs font-normal text-muted-foreground">of {formatMoney(goal.target_amount_cad)}</span></p><div className="mt-3 h-2 overflow-hidden rounded-full bg-muted"><div className={`h-full rounded-full ${goal.status === "completed" ? "bg-emerald-600" : "bg-primary"}`} style={{ width: `${Math.min(Number(goal.percentage_complete), 100)}%` }} /></div><p className="mt-2 text-xs capitalize text-muted-foreground">{goal.percentage_complete}% · {goal.status}</p></div>)}</div> : <DashboardEmpty text="No savings goals yet." href="/goals" action="Create a goal" />}</CardContent></Card>
     </div>
   );
 }
 
 function SummaryCard({ title, value, icon: Icon, tone, detail }: { title: string; value: string; icon: typeof Wallet; tone?: "positive" | "negative"; detail?: string }) {
+  const { formatMoney } = useCurrency();
   const color = tone === "positive" ? "text-emerald-700" : tone === "negative" ? "text-red-700" : "text-foreground";
-  return <Card><CardContent className="p-5"><div className="flex items-center justify-between"><p className="text-sm text-muted-foreground">{title}</p><Icon className="size-4 text-muted-foreground" /></div><p className={`mt-3 text-2xl font-semibold ${color}`}>{formatCad(value)}</p>{detail && <p className="mt-1 text-xs text-muted-foreground">{detail}</p>}</CardContent></Card>;
+  return <Card><CardContent className="p-5"><div className="flex items-center justify-between"><p className="text-sm text-muted-foreground">{title}</p><Icon className="size-4 text-muted-foreground" /></div><p className={`mt-3 text-2xl font-semibold ${color}`}>{formatMoney(value)}</p>{detail && <p className="mt-1 text-xs text-muted-foreground">{detail}</p>}</CardContent></Card>;
 }
 
 function TransactionRow({ item, accountName }: { item: LedgerTransaction; accountName?: string }) {
+  const { formatMoney } = useCurrency();
   const Icon = item.type === "income" ? ArrowDownLeft : item.type === "expense" ? ArrowUpRight : ArrowRightLeft;
   const sign = item.type === "income" ? "+" : item.type === "expense" ? "−" : "";
   const tone = item.type === "income" ? "text-emerald-700" : item.type === "expense" ? "text-red-700" : "text-blue-700";
-  return <div className="flex items-center gap-3 py-3 first:pt-0 last:pb-0"><span className="grid size-9 shrink-0 place-items-center rounded-full bg-muted"><Icon className={`size-4 ${tone}`} /></span><div className="min-w-0 flex-1"><p className="truncate text-sm font-medium">{item.description}</p><p className="mt-0.5 text-xs text-muted-foreground">{formatDate(item.date)} · {accountName ?? "Account"}</p></div><p className={`text-sm font-semibold ${tone}`}>{sign}{formatCad(item.amount_cad)}</p></div>;
+  return <div className="flex items-center gap-3 py-3 first:pt-0 last:pb-0"><span className="grid size-9 shrink-0 place-items-center rounded-full bg-muted"><Icon className={`size-4 ${tone}`} /></span><div className="min-w-0 flex-1"><p className="truncate text-sm font-medium">{item.description}</p><p className="mt-0.5 text-xs text-muted-foreground">{formatDate(item.date)} · {accountName ?? "Account"}</p></div><p className={`text-sm font-semibold ${tone}`}>{sign}{formatMoney(item.amount_cad)}</p></div>;
 }
 
 function DashboardBudget({ budget }: { budget: BudgetProgress }) {
+  const { formatMoney } = useCurrency();
   const width = Math.min(Number(budget.percentage_used), 100);
-  return <div><div className="flex items-center justify-between gap-3 text-sm"><div><p className="font-medium">{budget.scope_name}</p><p className="text-xs text-muted-foreground">{formatCad(budget.spent_cad)} of {formatCad(budget.amount_cad)}</p></div><p className={budget.is_over_budget ? "font-semibold text-red-700" : "font-semibold"}>{budget.percentage_used}%</p></div><div className="mt-2 h-2 overflow-hidden rounded-full bg-muted"><div className={`h-full rounded-full ${budget.is_over_budget ? "bg-red-600" : Number(budget.percentage_used) >= 80 ? "bg-amber-500" : "bg-primary"}`} style={{ width: `${width}%` }} /></div></div>;
-}
-
-function UnavailableState({ icon: Icon, text, detail }: { icon: typeof Wallet; text: string; detail: string }) {
-  return <div className="flex gap-3"><span className="grid size-10 shrink-0 place-items-center rounded-full bg-muted text-muted-foreground"><Icon className="size-4" /></span><div><p className="text-sm font-medium">{text}</p><p className="mt-1 text-xs leading-5 text-muted-foreground">{detail}</p></div></div>;
+  return <div><div className="flex items-center justify-between gap-3 text-sm"><div><p className="font-medium">{budget.scope_name}</p><p className="text-xs text-muted-foreground">{formatMoney(budget.spent_cad)} of {formatMoney(budget.amount_cad)}</p></div><p className={budget.is_over_budget ? "font-semibold text-red-700" : "font-semibold"}>{budget.percentage_used}%</p></div><div className="mt-2 h-2 overflow-hidden rounded-full bg-muted"><div className={`h-full rounded-full ${budget.is_over_budget ? "bg-red-600" : Number(budget.percentage_used) >= 80 ? "bg-amber-500" : "bg-primary"}`} style={{ width: `${width}%` }} /></div></div>;
 }
 
 function DashboardEmpty({ text, href, action }: { text: string; href: string; action: string }) {

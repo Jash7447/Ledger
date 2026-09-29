@@ -6,7 +6,8 @@ import { Archive, Pencil, Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { formatCad, ledgerRequest } from "@/lib/ledger-api";
+import { useCurrency } from "@/components/currency-provider";
+import { ledgerRequest } from "@/lib/ledger-api";
 import type { Account, AccountType } from "@/lib/ledger-types";
 
 const accountTypes: { value: AccountType; label: string }[] = [
@@ -20,6 +21,7 @@ const accountTypes: { value: AccountType; label: string }[] = [
 const selectClass = "h-10 w-full rounded-lg border bg-white px-3 text-sm outline-none focus:ring-2 focus:ring-primary";
 
 export function AccountsManager() {
+  const { formatMoney } = useCurrency();
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [name, setName] = useState("");
   const [type, setType] = useState<AccountType>("chequing");
@@ -101,7 +103,7 @@ export function AccountsManager() {
                 <div><CardTitle>{account.name}</CardTitle><p className="mt-1 text-xs capitalize text-muted-foreground">{account.type.replace("_", " ")}{!account.is_active && " · Archived"}</p></div>
                 {account.is_active && <div className="flex gap-1"><button onClick={() => beginEdit(account)} className="rounded p-2 text-muted-foreground hover:bg-muted" aria-label={`Edit ${account.name}`}><Pencil className="size-4" /></button><button onClick={() => void archive(account)} className="rounded p-2 text-muted-foreground hover:bg-muted" aria-label={`Archive ${account.name}`}><Archive className="size-4" /></button></div>}
               </CardHeader>
-              <CardContent><p className={`text-2xl font-semibold ${Number(account.balance_cad) < 0 ? "text-red-600" : ""}`}>{formatCad(account.balance_cad)}</p><p className="mt-1 text-xs text-muted-foreground">Derived balance</p></CardContent>
+              <CardContent><p className={`text-2xl font-semibold ${Number(account.balance_cad) < 0 ? "text-red-600" : ""}`}>{formatMoney(account.balance_cad)}</p><p className="mt-1 text-xs text-muted-foreground">Derived balance</p></CardContent>
             </Card>
           ))}
         </div>

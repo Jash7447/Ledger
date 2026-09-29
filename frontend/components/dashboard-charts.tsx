@@ -13,7 +13,7 @@ import {
   YAxis
 } from "recharts";
 
-import { formatCad } from "@/lib/ledger-api";
+import { useCurrency } from "@/components/currency-provider";
 import type { SpendingBreakdownItem } from "@/lib/ledger-types";
 
 const colors = ["#0f8a65", "#2563eb", "#7c3aed", "#ea580c", "#db2777", "#0891b2", "#64748b"];
@@ -23,9 +23,10 @@ function chartData(items: SpendingBreakdownItem[]) {
 }
 
 function MoneyTooltip({ active, payload, label }: { active?: boolean; payload?: Array<{ value?: number; name?: string; payload?: { name?: string } }>; label?: string }) {
+  const { formatMoney } = useCurrency();
   if (!active || !payload?.length) return null;
   const name = label || payload[0].payload?.name || payload[0].name;
-  return <div className="rounded-lg border bg-white px-3 py-2 text-xs shadow-lg"><p className="font-medium">{name}</p><p className="mt-1 text-muted-foreground">{formatCad(String(payload[0].value ?? 0))}</p></div>;
+  return <div className="rounded-lg border bg-white px-3 py-2 text-xs shadow-lg"><p className="font-medium">{name}</p><p className="mt-1 text-muted-foreground">{formatMoney(String(payload[0].value ?? 0))}</p></div>;
 }
 
 export function SpendingByBucketChart({ items }: { items: SpendingBreakdownItem[] }) {
@@ -47,6 +48,7 @@ export function SpendingByBucketChart({ items }: { items: SpendingBreakdownItem[
 }
 
 export function SpendingByCategoryChart({ items }: { items: SpendingBreakdownItem[] }) {
+  const { settings } = useCurrency();
   const data = chartData(items.slice(0, 8));
   if (!data.length) return <ChartEmptyState />;
   return (
@@ -54,7 +56,7 @@ export function SpendingByCategoryChart({ items }: { items: SpendingBreakdownIte
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={data} layout="vertical" margin={{ left: 10, right: 16 }} accessibilityLayer>
           <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-          <XAxis type="number" tickFormatter={(value) => `$${value}`} tick={{ fontSize: 11 }} />
+          <XAxis type="number" tickFormatter={(value) => settings.display_currency === "INR" ? `₹${Math.round(Number(value) * Number(settings.cad_to_inr_rate))}` : `$${value}`} tick={{ fontSize: 11 }} />
           <YAxis type="category" dataKey="name" width={90} tick={{ fontSize: 11 }} />
           <Tooltip content={<MoneyTooltip />} />
           <Bar dataKey="amount" fill="#0f8a65" radius={[0, 5, 5, 0]} />

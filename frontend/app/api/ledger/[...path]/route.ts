@@ -1,6 +1,6 @@
 import { serverApiUrl } from "@/lib/api";
 
-const allowedResources = new Set(["accounts", "transactions", "classifications", "dashboard", "budgets"]);
+const allowedResources = new Set(["accounts", "transactions", "classifications", "dashboard", "budgets", "recurring", "education", "people", "settings", "analytics", "goals"]);
 
 async function proxy(request: Request, context: { params: Promise<{ path: string[] }> }) {
   const { path } = await context.params;

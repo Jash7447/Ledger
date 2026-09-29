@@ -6,12 +6,13 @@ import { ArrowDownLeft, ArrowRightLeft, ArrowUpRight, Pencil, Trash2, X } from "
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { useCurrency } from "@/components/currency-provider";
 import {
   emptyTransactionFilters,
   TransactionHistoryFilters,
   type TransactionFilters
 } from "@/components/transaction-history-filters";
-import { formatCad, ledgerRequest } from "@/lib/ledger-api";
+import { ledgerRequest } from "@/lib/ledger-api";
 import type { Account, ClassificationCatalog, LedgerTransaction, TransactionPage, TransactionType } from "@/lib/ledger-types";
 
 type FormState = {
@@ -36,6 +37,7 @@ function historyQuery(filters: TransactionFilters, page: number) {
 }
 
 export function TransactionsManager() {
+  const { formatMoney } = useCurrency();
   const [transactions, setTransactions] = useState<LedgerTransaction[]>([]);
   const [history, setHistory] = useState({ total: 0, pages: 1, page_size: 25 });
   const [accounts, setAccounts] = useState<Account[]>([]);
@@ -152,7 +154,7 @@ export function TransactionsManager() {
             return <Card key={item.id}><CardContent className="p-0"><button className="flex w-full items-center gap-4 p-5 text-left" onClick={() => setExpanded(open ? null : item.id)}>
               <span className={`grid size-10 shrink-0 place-items-center rounded-full ${item.type === "income" ? "bg-emerald-100 text-emerald-700" : item.type === "expense" ? "bg-red-100 text-red-700" : "bg-blue-100 text-blue-700"}`}><Icon className="size-5" /></span>
               <span className="min-w-0 flex-1"><span className="block truncate font-medium">{item.description}</span><span className="mt-1 block text-xs text-muted-foreground">{new Date(`${item.date}T00:00:00`).toLocaleDateString("en-CA", { dateStyle: "medium" })} · {accountNames[item.account_id] ?? "Unknown account"}{item.type === "transfer" && ` → ${accountNames[item.destination_account_id ?? ""] ?? "Unknown account"}`}</span></span>
-              <span className={`font-semibold ${item.type === "income" ? "text-emerald-700" : item.type === "expense" ? "text-red-700" : ""}`}>{item.type === "income" ? "+" : item.type === "expense" ? "−" : ""}{formatCad(item.amount_cad)}</span>
+              <span className={`font-semibold ${item.type === "income" ? "text-emerald-700" : item.type === "expense" ? "text-red-700" : ""}`}>{item.type === "income" ? "+" : item.type === "expense" ? "−" : ""}{formatMoney(item.amount_cad)}</span>
             </button>{open && <div className="border-t bg-muted/30 px-5 py-4 text-sm"><div className="grid gap-2 sm:grid-cols-2"><p><span className="text-muted-foreground">Type:</span> <span className="capitalize">{item.type}</span></p><p><span className="text-muted-foreground">Classification:</span> {item.expense_classification ?? "—"}</p><p><span className="text-muted-foreground">Bucket:</span> {item.bucket_id ? bucketNames[item.bucket_id] : "—"}</p><p><span className="text-muted-foreground">Category:</span> {item.category_id ? categoryNames[item.category_id] : "—"}</p><p><span className="text-muted-foreground">Major purchase:</span> {item.is_major_purchase ? "Yes" : "No"}</p><p><span className="text-muted-foreground">Notes:</span> {item.notes || "—"}</p></div><div className="mt-4 flex gap-2"><Button className="h-9" onClick={() => beginEdit(item)}><Pencil className="mr-2 size-4" />Edit</Button><Button className="h-9 bg-red-600" onClick={() => void remove(item)}><Trash2 className="mr-2 size-4" />Delete</Button></div></div>}</CardContent></Card>;
           })}
           {!loading && history.pages > 1 && <div className="flex items-center justify-end gap-2 pt-2"><Button className="border bg-white text-foreground hover:bg-muted" disabled={page <= 1} onClick={() => setPage((current) => current - 1)}>Previous</Button><Button disabled={page >= history.pages} onClick={() => setPage((current) => current + 1)}>Next</Button></div>}
