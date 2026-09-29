@@ -2,13 +2,13 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowDownLeft, ArrowRight, ArrowRightLeft, ArrowUpRight, BookOpen, PiggyBank, ReceiptText, Target, Users, Wallet } from "lucide-react";
+import { ArrowDownLeft, ArrowRight, ArrowRightLeft, ArrowUpRight, BookOpen, Clock3, PiggyBank, ReceiptText, Target, Users, Wallet } from "lucide-react";
 
 import { SpendingByBucketChart, SpendingByCategoryChart } from "@/components/dashboard-charts";
 import { useCurrency } from "@/components/currency-provider";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ledgerRequest } from "@/lib/ledger-api";
-import type { Account, BudgetProgress, DashboardData, LedgerTransaction } from "@/lib/ledger-types";
+import type { Account, BudgetProgress, DashboardData, LedgerTransaction, RunwayEstimate } from "@/lib/ledger-types";
 
 function currentMonth() {
   const now = new Date();
@@ -21,6 +21,7 @@ export function Dashboard() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [loading, setLoading] = useState(true);
+  const [runwaySaving, setRunwaySaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
@@ -46,6 +47,12 @@ export function Dashboard() {
 
   const summary = data.summary;
   const savingsNegative = Number(summary.monthly_savings_cad) < 0;
+  async function updateRunway(changes: { is_enabled?: boolean; lookback_months?: number }) {
+    setRunwaySaving(true);
+    try { await ledgerRequest("settings/runway", { method: "PATCH", body: JSON.stringify(changes) }); await load(); }
+    catch (reason) { setError(reason instanceof Error ? reason.message : "Unable to update runway settings"); }
+    finally { setRunwaySaving(false); }
+  }
   return (
     <div className="mx-auto max-w-7xl">
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
@@ -60,6 +67,8 @@ export function Dashboard() {
         <SummaryCard title="Monthly expenses" value={summary.monthly_expenses_cad} icon={ArrowUpRight} tone="negative" />
         <SummaryCard title="Monthly savings" value={summary.monthly_savings_cad} icon={PiggyBank} tone={savingsNegative ? "negative" : "positive"} detail="Income minus expenses" />
       </div>
+
+      <RunwayCard runway={data.runway} saving={runwaySaving} onUpdate={updateRunway} />
 
       <div className="mt-6 grid gap-5 xl:grid-cols-2">
         <Card><CardHeader><CardTitle>Spending by bucket</CardTitle><p className="text-xs text-muted-foreground">Where this month&apos;s expenses went</p></CardHeader><CardContent><SpendingByBucketChart items={data.spending_by_bucket} /></CardContent></Card>
@@ -100,6 +109,11 @@ function DashboardBudget({ budget }: { budget: BudgetProgress }) {
   const { formatMoney } = useCurrency();
   const width = Math.min(Number(budget.percentage_used), 100);
   return <div><div className="flex items-center justify-between gap-3 text-sm"><div><p className="font-medium">{budget.scope_name}</p><p className="text-xs text-muted-foreground">{formatMoney(budget.spent_cad)} of {formatMoney(budget.amount_cad)}</p></div><p className={budget.is_over_budget ? "font-semibold text-red-700" : "font-semibold"}>{budget.percentage_used}%</p></div><div className="mt-2 h-2 overflow-hidden rounded-full bg-muted"><div className={`h-full rounded-full ${budget.is_over_budget ? "bg-red-600" : Number(budget.percentage_used) >= 80 ? "bg-amber-500" : "bg-primary"}`} style={{ width: `${width}%` }} /></div></div>;
+}
+
+function RunwayCard({ runway, saving, onUpdate }: { runway: RunwayEstimate; saving: boolean; onUpdate: (changes: { is_enabled?: boolean; lookback_months?: number }) => Promise<void> }) {
+  const { formatMoney } = useCurrency();
+  return <Card className="mt-6"><CardContent className="p-5"><div className="flex flex-col justify-between gap-4 md:flex-row md:items-center"><div className="flex items-start gap-3"><span className="grid size-10 shrink-0 place-items-center rounded-full bg-cyan-100 text-cyan-700"><Clock3 className="size-5" /></span><div><div className="flex flex-wrap items-center gap-2"><p className="font-medium">Estimated financial runway</p><span className="rounded-full bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">Estimate only</span></div>{!runway.is_enabled ? <p className="mt-2 text-sm text-muted-foreground">Runway estimate is disabled.</p> : runway.estimated_months ? <p className="mt-2 text-2xl font-semibold">{runway.estimated_months} months</p> : <p className="mt-2 text-sm text-muted-foreground">Not enough positive balance or spending history to estimate.</p>}<p className="mt-1 text-xs text-muted-foreground">{formatMoney(runway.available_funds_cad)} available ÷ {formatMoney(runway.average_monthly_spending_cad)} average monthly spending. This is not a prediction or guarantee.</p></div></div><div className="flex shrink-0 items-end gap-3"><label className="text-xs text-muted-foreground">History<select disabled={saving} className="mt-1 block h-9 rounded-lg border bg-white px-2 text-sm text-foreground" value={runway.lookback_months} onChange={(event) => void onUpdate({ lookback_months: Number(event.target.value) })}><option value={1}>1 month</option><option value={3}>3 months</option><option value={6}>6 months</option><option value={12}>12 months</option><option value={24}>24 months</option></select></label><button disabled={saving} onClick={() => void onUpdate({ is_enabled: !runway.is_enabled })} className="h-9 rounded-lg border bg-white px-3 text-xs font-medium hover:bg-muted disabled:opacity-50">{runway.is_enabled ? "Disable" : "Enable"}</button></div></div></CardContent></Card>;
 }
 
 function DashboardEmpty({ text, href, action }: { text: string; href: string; action: string }) {

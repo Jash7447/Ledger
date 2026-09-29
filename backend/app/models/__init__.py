@@ -7,6 +7,7 @@ from app.models.goal import Goal
 from app.models.iou_event import IOUEvent
 from app.models.person import Person
 from app.models.recurring_transaction import RecurringTransaction
+from app.models.runway_setting import RunwaySetting
 from app.models.transaction import Transaction
 from app.models.user import User
 
@@ -20,6 +21,7 @@ __all__ = [
     "IOUEvent",
     "Person",
     "RecurringTransaction",
+    "RunwaySetting",
     "Transaction",
     "User",
 ]

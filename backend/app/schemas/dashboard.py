@@ -7,6 +7,7 @@ from pydantic import BaseModel
 from app.schemas.budget import BudgetProgress
 from app.schemas.financial import TransactionResponse
 from app.schemas.goal import GoalResponse
+from app.schemas.runway import RunwayEstimate
 
 
 class DashboardSummary(BaseModel):
@@ -35,3 +36,4 @@ class DashboardResponse(BaseModel):
     recent_transactions: list[TransactionResponse]
     major_purchases: list[TransactionResponse]
     goals: list[GoalResponse]
+    runway: RunwayEstimate

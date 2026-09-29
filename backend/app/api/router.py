@@ -10,6 +10,7 @@ from app.api.routes import (
     education,
     goals,
     health,
+    natural_language,
     people,
     recurring,
     settings,
@@ -18,6 +19,9 @@ from app.api.routes import (
 
 api_router = APIRouter()
 api_router.include_router(health.router, prefix="/health", tags=["health"])
+api_router.include_router(
+    natural_language.router, prefix="/natural-language", tags=["natural-language"]
+)
 api_router.include_router(analytics.router, prefix="/analytics", tags=["analytics"])
 api_router.include_router(auth.router, prefix="/auth", tags=["authentication"])
 api_router.include_router(dashboard.router, prefix="/dashboard", tags=["dashboard"])

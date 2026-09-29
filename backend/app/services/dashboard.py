@@ -19,6 +19,7 @@ from app.services.accounts import list_accounts_with_balances
 from app.services.budgets import list_budgets_with_progress
 from app.services.goals import dashboard_goals
 from app.services.people import get_iou_totals
+from app.services.runway import get_runway_estimate
 
 
 def month_bounds(selected_month: str | None) -> tuple[date, date]:
@@ -163,4 +164,5 @@ def get_dashboard(db: Session, user_id: UUID, selected_month: str | None) -> Das
         recent_transactions=[TransactionResponse.model_validate(item) for item in recent],
         major_purchases=[TransactionResponse.model_validate(item) for item in major],
         goals=dashboard_goals(db, user_id),
+        runway=get_runway_estimate(db, user_id),
     )

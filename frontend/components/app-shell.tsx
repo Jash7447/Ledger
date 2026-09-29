@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
-import { Activity, ChartNoAxesCombined, Gauge, GraduationCap, LayoutDashboard, Repeat2, Target, Users, Wallet } from "lucide-react";
+import { Activity, ChartNoAxesCombined, Gauge, GraduationCap, LayoutDashboard, Repeat2, Sparkles, Target, Users, Wallet } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -19,7 +19,8 @@ const navigation = [
   { label: "Education", href: "/education", icon: GraduationCap },
   { label: "People", href: "/people", icon: Users },
   { label: "Analytics", href: "/analytics", icon: ChartNoAxesCombined },
-  { label: "Goals", href: "/goals", icon: Target }
+  { label: "Goals", href: "/goals", icon: Target },
+  { label: "Assistant", href: "/assistant", icon: Sparkles }
 ];
 
 export function AppShell({ children, user }: { children: React.ReactNode; user: CurrentUser }) {

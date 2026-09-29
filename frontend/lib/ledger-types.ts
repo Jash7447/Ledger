@@ -89,6 +89,17 @@ export type DashboardData = {
   recent_transactions: LedgerTransaction[];
   major_purchases: LedgerTransaction[];
   goals: Goal[];
+  runway: RunwayEstimate;
+};
+
+export type RunwayEstimate = {
+  is_enabled: boolean;
+  lookback_months: number;
+  period_start: string;
+  period_end: string;
+  available_funds_cad: string;
+  average_monthly_spending_cad: string;
+  estimated_months: string | null;
 };
 
 export type BudgetProgress = {
@@ -180,6 +191,32 @@ export type Goal = {
   status: GoalStatus;
   created_at: string;
   updated_at: string;
+};
+
+export type NaturalLanguageTransactionProposal = {
+  source_text: string;
+  type: "expense" | "income" | null;
+  amount_cad: string | null;
+  date: string;
+  description: string;
+  account_id: string | null;
+  account_name: string | null;
+  bucket_id: string | null;
+  bucket_name: string | null;
+  category_id: string | null;
+  category_name: string | null;
+  is_major_purchase: boolean;
+  ready_to_confirm: boolean;
+  warnings: string[];
+  errors: string[];
+};
+
+export type NaturalLanguageQueryResponse = {
+  intent: string;
+  answer: string;
+  amount_cad: string | null;
+  count: number | null;
+  structured_data: Record<string, unknown>;
 };
 
 export type IOUEventType = "borrowed" | "lent" | "repayment_received" | "repayment_made" | "adjustment";

@@ -19,3 +19,16 @@ class CurrencySettingsResponse(BaseModel):
     display_currency: DisplayCurrency
     cad_to_inr_rate: Decimal
     updated_at: datetime
+
+
+class RunwaySettingsUpdate(BaseModel):
+    is_enabled: bool | None = None
+    lookback_months: int | None = Field(default=None, ge=1, le=24)
+
+
+class RunwaySettingsResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    is_enabled: bool
+    lookback_months: int
+    updated_at: datetime
